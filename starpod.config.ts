@@ -1,53 +1,58 @@
+// starpod.config.ts
 import { defineConfig } from 'astro/config';
 import db from '@astrojs/db';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import vercel from '@astrojs/vercel';
+
 import type { StarpodConfig } from './src/types/starpod-config';
 
-const starpodConfig: StarpodConfig = {
-  platforms: {
-    appleIdNumber: '123456789',
-    apple: 'https://podcasts.apple.com/podcast/your-podcast',
-    spotify: 'https://open.spotify.com/show/your-podcast',
-    overcast: 'https://overcast.fm/itunes123456789/your-podcast',
-    youtube: 'https://www.youtube.com/channel/your-channel',
-  },
-  rssFeed: 'https://yourdomain.com/rss.xml',
-  blurb: 'Your podcast blurb here.',
-  description: 'Your podcast description here.',
+// ✅ Konfigurasi metadata konten
+export const starpodConfig: StarpodConfig = {
+  rssFeed: 'https://whiskey.fm/feed.xml',
+  description: 'A podcast about web dev, tools, and craft.',
+  blurb: 'Discussing development & design with great humans.',
   hosts: [
     {
-      name: 'Host Name',
-      img: '/path/to/image.jpg',
-      title: 'Host Title',
-      bio: 'Short bio of the host.',
-      twitter: 'https://twitter.com/host',
-      github: 'https://github.com/host',
-      website: 'https://hostwebsite.com',
+      name: 'Fadhli Ari',
+      img: 'https://dummyimage.com/200x200',
+      title: 'Infra Engineer',
+      bio: 'Infra and Linux stuff.',
+      github: 'https://github.com/fadharpra',
+      twitter: 'https://twitter.com/fadharpra',
+      website: 'https://fadharpra.id',
     },
-    // Tambahkan host lain jika diperlukan
   ],
+  platforms: {
+    appleIdNumber: '1234567890',
+    apple: 'https://podcasts.apple.com/',
+    spotify: 'https://open.spotify.com/',
+    overcast: 'https://overcast.fm/',
+    youtube: 'https://youtube.com/@fadharpra',
+  },
 };
 
+// ✅ Konfigurasi Astro (tetap sebagai default export)
 export default defineConfig({
   output: 'static',
+  site: 'https://whiskey.fm',
   adapter: vercel({
     imageService: true,
     webAnalytics: {
       enabled: true,
     },
   }),
-  site: 'https://yourdomain.com',
   integrations: [db(), preact(), sitemap()],
   redirects: {
-    '/old-route': '/new-route',
-    // Tambahkan redirect lain jika diperlukan
+    '/hot-takes-tan-stack-and-open-source-with-tanner-linsley':
+      '/hot-takes-tanstack-and-open-source-with-tanner-linsley',
+    '/creating-code-pen-tackling-tailwind-and-keeping-it-simple-with-chris-coyier':
+      '/creating-codepen-tackling-tailwind-and-keeping-it-simple-with-chris-coyier',
+    '/coding-languages-ai-and-the-evolution-of-game-development-with-phillip-winston':
+      '/coding-languages-ai-and-the-evolution-of-game-development-with-philip-winston',
   },
   vite: {
     plugins: [tailwindcss()],
   },
 });
-
-export { starpodConfig };

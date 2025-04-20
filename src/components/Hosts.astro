@@ -4,6 +4,18 @@ import { Image } from 'astro:assets';
 
 import starpodConfig from '../../starpod.config';
 
+type Host = {
+  name: string;
+  img: string;
+  title: string;
+  bio?: string;
+  github?: string;
+  twitter?: string;
+  website?: string;
+};
+
+const hosts: Host[] = starpodConfig.hosts;
+
 const { hosts } = starpodConfig ?? { hosts: [] };
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
