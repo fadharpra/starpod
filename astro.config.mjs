@@ -1,5 +1,4 @@
 import { defineConfig } from 'astro/config';
-import db from '@astrojs/db';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
@@ -15,8 +14,11 @@ export default defineConfig({
     }
   }),
   site: 'https://whiskey.fm',
-  integrations: [db(), preact(), sitemap()],
-  // These were specific redirects we needed for our podcast, if you do not have any routes to redirect, you can safely remove this.
+  integrations: [
+    preact(),
+    sitemap()
+    // db() dihapus
+  ],
   redirects: {
     '/hot-takes-tan-stack-and-open-source-with-tanner-linsley':
       '/hot-takes-tanstack-and-open-source-with-tanner-linsley',
