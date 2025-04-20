@@ -52,6 +52,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       
+      - name: Push to db Astro
+        run: pnpm astro db push
+
+      - name : Seed db Astro
+        run: pnpm astro db seed
+
       - name: Build Astro
         run: pnpm run build
       
