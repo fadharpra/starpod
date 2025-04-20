@@ -14,8 +14,8 @@ jobs:
       contents: 'read'
       id-token: 'write'  
 env:
-  BUCKET_NAME: gcr-website-bucket
-
+  BUCKET_NAME: gcr-website-bucket 
+  
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
