@@ -40,4 +40,4 @@ jobs:
 
       - name: Deploy to GCS
         run: |
-          gsutil -m cp -r . gs://gdg-website-bucket/
+          gsutil -m cp -r . gs://gcr-website-bucket/
