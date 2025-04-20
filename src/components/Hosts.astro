@@ -14,8 +14,6 @@ type Host = {
   website?: string;
 };
 
-const hosts: Host[] = starpodConfig.hosts;
-
 const { hosts } = starpodConfig ?? { hosts: [] };
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
