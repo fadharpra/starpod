@@ -1,84 +1,80 @@
-import {
-  db,
-  Episode,
-  HostOrGuest,
-  Person,
-  Sponsor,
-  SponsorForEpisode,
-  sql
-} from 'astro:db';
+import { createClient } from '@libsql/client'
+import people from './data/people'
+import peoplePerEpisode from './data/people-per-episode'
+import sponsors from './data/sponsors'
+import sponsorsPerEpisode from './data/sponsors-per-episode'
+import { getAllEpisodes } from '../src/lib/rss'
 
-import { getAllEpisodes } from '../src/lib/rss';
-import people from './data/people';
-import peoplePerEpisode from './data/people-per-episode';
-import sponsors from './data/sponsors';
-import sponsorsPerEpisode from './data/sponsors-per-episode';
+// Inisialisasi koneksi ke Turso
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+})
 
-// https://astro.build/db/seed
-export default async function seed() {
-  await db
-    .insert(Person)
-    .values(people)
-    .onConflictDoUpdate({
-      target: Person.id,
-      set: { name: sql`excluded.name`, img: sql`excluded.img` }
-    });
+async function seed() {
+  // 1. Insert Person
+  for (const person of people) {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO Person (id, name, img) VALUES (?, ?, ?)`,
+      args: [person.id, person.name, person.img || null],
+    })
+  }
 
-  await db
-    .insert(Sponsor)
-    .values(sponsors)
-    .onConflictDoUpdate({
-      target: Sponsor.id,
-      set: {
-        name: sql`excluded.name`,
-        img: sql`excluded.img`,
-        url: sql`excluded.url`
-      }
-    });
+  // 2. Insert Sponsor
+  for (const sponsor of sponsors) {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO Sponsor (id, name, img, url) VALUES (?, ?, ?, ?)`,
+      args: [sponsor.id, sponsor.name, sponsor.img || null, sponsor.url || null],
+    })
+  }
 
-  const allEpisodes = await getAllEpisodes();
-  const episodes = allEpisodes.map((episode) => {
-    return {
-      episodeSlug: episode.episodeSlug
-    };
-  });
+  // 3. Insert Episodes
+  const allEpisodes = await getAllEpisodes()
+  const episodes = allEpisodes.map((e) => e.episodeSlug)
 
-  await db.insert(Episode).values(episodes).onConflictDoNothing();
+  for (const slug of episodes) {
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO Episode (episodeSlug) VALUES (?)`,
+      args: [slug],
+    })
+  }
 
-  const hostsOrGuestsToInsert = [];
-  const sponsorsForEpisodesToInsert = [];
-  for (let episode of episodes) {
-    if (peoplePerEpisode[episode.episodeSlug]?.length) {
-      for (let person of peoplePerEpisode[episode.episodeSlug]) {
-        hostsOrGuestsToInsert.push({
-          episodeSlug: episode.episodeSlug,
-          isHost:
-            (person.id === 'chuckcarpenter' ||
-              person.id === 'robbiethewagner' ||
-              person.host) ??
-            false,
-          personId: person.id
-        });
-      }
-    }
+  // 4. Insert HostOrGuest
+  for (const slug of episodes) {
+    const peopleInEpisode = peoplePerEpisode[slug]
+    if (!peopleInEpisode) continue
 
-    if (sponsorsPerEpisode[episode.episodeSlug]?.length) {
-      for (let sponsor of sponsorsPerEpisode[episode.episodeSlug]) {
-        sponsorsForEpisodesToInsert.push({
-          episodeSlug: episode.episodeSlug,
-          sponsorId: sponsor.id
-        });
-      }
+    for (const person of peopleInEpisode) {
+      const isHost =
+        person.id === 'chuckcarpenter' ||
+        person.id === 'robbiethewagner' ||
+        Boolean(person.host)
+
+      await client.execute({
+        sql: `INSERT OR IGNORE INTO HostOrGuest (episodeSlug, personId, isHost) VALUES (?, ?, ?)`,
+        args: [slug, person.id, isHost ? 1 : 0],
+      })
     }
   }
 
-  await db
-    .insert(HostOrGuest)
-    .values(hostsOrGuestsToInsert)
-    .onConflictDoNothing();
+  // 5. Insert SponsorForEpisode
+  for (const slug of episodes) {
+    const sponsorList = sponsorsPerEpisode[slug]
+    if (!sponsorList) continue
 
-  await db
-    .insert(SponsorForEpisode)
-    .values(sponsorsForEpisodesToInsert)
-    .onConflictDoNothing();
+    for (const sponsor of sponsorList) {
+      await client.execute({
+        sql: `INSERT OR IGNORE INTO SponsorForEpisode (episodeSlug, sponsorId) VALUES (?, ?)`,
+        args: [slug, sponsor.id],
+      })
+    }
+  }
+
+  console.log('✅ Seeding complete')
 }
+
+seed().catch((err) => {
+  console.error('❌ Error seeding:', err)
+  process.exit(1)
+})
+
