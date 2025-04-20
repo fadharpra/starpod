@@ -1,35 +1,53 @@
-// starpod.config.ts
-export default {
-  rssFeed: 'https://whiskey.fm/feed.xml',
-  description: 'A podcast about web dev, tools, and craft.',
-  blurb: 'Discussing development & design with great humans.',
+import { defineConfig } from 'astro/config';
+import db from '@astrojs/db';
+import preact from '@astrojs/preact';
+import sitemap from '@astrojs/sitemap';
+import tailwindcss from '@tailwindcss/vite';
+import vercel from '@astrojs/vercel';
+import type { StarpodConfig } from './src/types/starpod-config';
 
+const starpodConfig: StarpodConfig = {
+  platforms: {
+    appleIdNumber: '123456789',
+    apple: 'https://podcasts.apple.com/podcast/your-podcast',
+    spotify: 'https://open.spotify.com/show/your-podcast',
+    overcast: 'https://overcast.fm/itunes123456789/your-podcast',
+    youtube: 'https://www.youtube.com/channel/your-channel',
+  },
+  rssFeed: 'https://yourdomain.com/rss.xml',
+  blurb: 'Your podcast blurb here.',
+  description: 'Your podcast description here.',
   hosts: [
     {
-      name: 'Fadhli Ari',
-      img: 'https://dummyimage.com/200x200',
-      title: 'Infra Engineer',
-      bio: 'A curious Linux & GCP enthusiast who loves automation.',
-      github: 'https://github.com/fadharpra',
-      twitter: 'https://twitter.com/fadharpra',
-      website: 'https://fadharpra.id'
+      name: 'Host Name',
+      img: '/path/to/image.jpg',
+      title: 'Host Title',
+      bio: 'Short bio of the host.',
+      twitter: 'https://twitter.com/host',
+      github: 'https://github.com/host',
+      website: 'https://hostwebsite.com',
     },
-    {
-      name: 'Guest Host',
-      img: 'https://dummyimage.com/200x200',
-      title: 'Cloud Specialist',
-      bio: 'Passionate about cloud-native tech and dev advocacy.',
-      github: 'https://github.com/guesthost',
-      twitter: 'https://twitter.com/guesthost',
-      website: 'https://guesthost.dev'
-    }
+    // Tambahkan host lain jika diperlukan
   ],
-
-  platforms: {
-    appleIdNumber: '1234567890',
-    apple: 'https://podcasts.apple.com/podcast/example',
-    spotify: 'https://open.spotify.com/show/example',
-    overcast: 'https://overcast.fm/example',
-    youtube: 'https://www.youtube.com/@example'
-  }
 };
+
+export default defineConfig({
+  output: 'static',
+  adapter: vercel({
+    imageService: true,
+    webAnalytics: {
+      enabled: true,
+    },
+  }),
+  site: 'https://yourdomain.com',
+  integrations: [db(), preact(), sitemap()],
+  redirects: {
+    '/old-route': '/new-route',
+    // Tambahkan redirect lain jika diperlukan
+  },
+  vite: {
+    plugins: [tailwindcss()],
+  },
+});
+
+export { starpodConfig };
