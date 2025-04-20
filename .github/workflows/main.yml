@@ -13,6 +13,8 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'  
+env:
+  BUCKET_NAME: gcr-website-bucket
 
     steps:
       - name: Checkout repository
@@ -37,7 +39,25 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22' 
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Build Astro
+        run: pnpm run build
+      
+      - name: Upload to GCS
+        run: |
+          gsutil -m cp -r dist/* gs://${{ env.BUCKET_NAME }}/
 
       - name: Deploy to GCS
         run: |
-          gsutil -m cp -r . gs://gcr-website-bucket/
+          gsutil -m cp -r . gs://${{ env.BUCKET_NAME }}/
