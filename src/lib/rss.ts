@@ -33,8 +33,8 @@ export async function getShowInfo() {
   return (await parseFeed.parse(starpodConfig.rssFeed)) as Show;
 }
 
-export async function getAllEpisodes() {
-  let FeedSchema = object({
+export async function getAllEpisodes(): Promise<Episode[]> {
+  const FeedSchema = object({
     items: array(
       object({
         id: string(),
@@ -54,44 +54,78 @@ export async function getAllEpisodes() {
     )
   });
 
-  // @ts-expect-error
-  let feed = (await parseFeed.parse(starpodConfig.rssFeed)) as Show;
-  let items = parse(FeedSchema, feed).items;
+  try {
+    // @ts-expect-error
+    const feed = (await parseFeed.parse(starpodConfig.rssFeed)) as Show;
+    const items = parse(FeedSchema, feed).items;
 
-  let episodes: Array<Episode> = items
-    .filter((item) => item.itunes_episodeType !== 'trailer')
-    .map(
-      ({
-        description,
-        id,
-        title,
-        enclosures,
-        published,
-        itunes_episode,
-        itunes_episodeType,
-        itunes_image
-      }) => {
-        const episodeNumber =
-          itunes_episodeType === 'bonus' ? 'Bonus' : `${itunes_episode}`;
-        const episodeSlug = dasherize(title);
-
-        return {
+    const episodes: Array<Episode> = items
+      .filter((item) => item.itunes_episodeType !== 'trailer')
+      .map(
+        ({
+          description,
           id,
-          title: `${title}`,
-          content: description,
-          description: truncate(htmlToText(description), 260),
-          // If the image path includes 3000x3000 we can probably replace the size with 200x200 and save bytes.
-          episodeImage: itunes_image?.href?.replace('3000x3000', '200x200'),
-          episodeNumber,
-          episodeSlug,
+          title,
+          enclosures,
           published,
-          audio: enclosures.map((enclosure) => ({
-            src: enclosure.url,
-            type: enclosure.type
-          }))[0]
-        };
-      }
-    );
+          itunes_episode,
+          itunes_episodeType,
+          itunes_image
+        }) => {
+          const episodeNumber =
+            itunes_episodeType === 'bonus' ? 'Bonus' : `${itunes_episode}`;
+          const episodeSlug = dasherize(title);
 
-  return episodes;
+          return {
+            id,
+            title: `${title}`,
+            content: description,
+            description: truncate(htmlToText(description), 260),
+            episodeImage: itunes_image?.href?.replace('3000x3000', '200x200'),
+            episodeNumber,
+            episodeSlug,
+            published,
+            audio: enclosures.map((enclosure) => ({
+              src: enclosure.url,
+              type: enclosure.type
+            }))[0]
+          };
+        }
+      );
+
+    return episodes;
+  } catch (err) {
+    console.error('⚠️ Failed to fetch or parse RSS feed, fallback to dummy episodes.', err);
+
+    // Fallback dummy
+    return [
+      {
+        id: 'dummy-ep-1',
+        title: 'The Power of DevInfra Automation',
+        content: 'In this episode, we explore IaC and automation in cloud-native stacks.',
+        description: 'We explore IaC and automation in cloud-native stacks.',
+        published: Date.now(),
+        episodeNumber: '1',
+        episodeSlug: 'the-power-of-devinfra-automation',
+        audio: {
+          src: 'https://example.com/audio/devinfra.mp3',
+          type: 'audio/mpeg'
+        }
+      },
+      {
+        id: 'dummy-ep-2',
+        title: 'Coffee and CI/CD Pipelines ☕',
+        content: 'Caffeine-fueled deployments and the rise of GitHub Actions.',
+        description: 'Caffeine-fueled deployments and the rise of GitHub Actions.',
+        published: Date.now() - 86400000,
+        episodeNumber: '2',
+        episodeSlug: 'coffee-and-ci-cd-pipelines',
+        audio: {
+          src: 'https://example.com/audio/cicd.mp3',
+          type: 'audio/mpeg'
+        }
+      }
+    ];
+  }
 }
+
