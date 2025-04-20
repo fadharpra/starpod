@@ -45,7 +45,7 @@ jobs:
         run: pnpm install
 
       - name: Seed db with Turso
-        run: pnpm astro db seed
+        run: npm run seed
 
       - name: Build Astro
         run: pnpm run build
