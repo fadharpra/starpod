@@ -6,9 +6,17 @@ import Layout from '../layouts/Layout.astro';
 import { starpodConfig } from '../config/starpod';
 import LargePlatforms from '../components/LargePlatforms.astro';
 
-const { hosts } = starpodConfig;
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
+);
+
+// Preload all image metadata and enrich each host with imageData (or null if not found)
+const hosts = await Promise.all(
+  starpodConfig.hosts.map(async (host) => {
+    const loader = images[`/src/img/people/${host.img}`];
+    const imageData = loader ? (await loader()).default : null;
+    return { ...host, imageData };
+  })
 );
 ---
 
@@ -30,13 +38,17 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
       {
         hosts.map((host) => (
           <div class="mb-4 flex flex-col lg:flex-row">
-            <Image
-              class="mb-4 mr-6 h-12 w-12 rounded-lg lg:h-20 lg:w-20"
-              height={80}
-              src={images[`/src/img/people/${host.img}`]()}
-              width={80}
-              alt=""
-            />
+            {
+              host.imageData && (
+                <Image
+                  class="mb-4 mr-6 h-12 w-12 rounded-lg lg:h-20 lg:w-20"
+                  height={80}
+                  src={host.imageData}
+                  width={80}
+                  alt={host.name}
+                />
+              )
+            }
 
             <div>
               <h3 class="text-lg font-bold text-light-text-heading lg:text-2xl dark:text-white">
@@ -80,3 +92,4 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
     </div>
   </div>
 </Layout>
+
