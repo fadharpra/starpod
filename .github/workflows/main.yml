@@ -58,8 +58,7 @@ jobs:
 
       - name: Fix JS MIME types
         run: |
-          gsutil -m setmeta -h "Content-Type:application/javascript" \
-            $(gsutil ls gs://${{ env.BUCKET_NAME }}/client/_astro/*.js || true)
+          gsutil -m setmeta -h "Content-Type:application/javascript" $(gsutil ls gs://${{ env.BUCKET_NAME }}/client/_astro/*.js || true)
 
       - name: Set Web Index
         run: gsutil web set -m index.html -e 404.html gs://gcr-website-bucket
