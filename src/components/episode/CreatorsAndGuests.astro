@@ -12,67 +12,78 @@ export interface Props {
 }
 
 const { hostsAndGuests } = Astro.props;
+
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
 );
 
 const priorityNames = ['RobbieTheWagner', 'Charles William Carpenter III'];
+
+// Load default fallback images once
+const defaultAvatarLight = (await images['/src/img/people/avatar-light.png']())?.default;
+const defaultAvatarDark = (await images['/src/img/people/avatar-dark.png']())?.default;
+
+// Sort and map with image metadata
+const peopleWithImages = await Promise.all(
+  hostsAndGuests
+    .sort((a, b) => {
+      const aPriorityIndex = priorityNames.indexOf(a.name);
+      const bPriorityIndex = priorityNames.indexOf(b.name);
+
+      if (aPriorityIndex !== -1 && bPriorityIndex !== -1) return aPriorityIndex - bPriorityIndex;
+      if (aPriorityIndex !== -1) return -1;
+      if (bPriorityIndex !== -1) return 1;
+
+      if (a.isHost && !b.isHost) return -1;
+      if (!a.isHost && b.isHost) return 1;
+
+      return a.name.localeCompare(b.name);
+    })
+    .map(async (person) => {
+      const key = person.img ? `/src/img/people/${person.img}` : null;
+      const imageData = key && images[key] ? (await images[key]()).default : null;
+
+      return {
+        ...person,
+        imageData,
+      };
+    })
+);
 ---
 
 <h3 class="section-heading pb-6">Creators and Guests</h3>
 
 <div class="mb-12 grid grid-cols-1 gap-4 lg:mb-20 lg:grid-cols-2">
-  {
-    hostsAndGuests
-      .sort((a, b) => {
-        const aPriorityIndex = priorityNames.indexOf(a.name);
-        const bPriorityIndex = priorityNames.indexOf(b.name);
-
-        if (aPriorityIndex !== -1 && bPriorityIndex !== -1) return aPriorityIndex - bPriorityIndex;
-        if (aPriorityIndex !== -1) return -1;
-        if (bPriorityIndex !== -1) return 1;
-
-        if (a.isHost && !b.isHost) return -1;
-        if (!a.isHost && b.isHost) return 1;
-
-        return a.name.localeCompare(b.name);
-      })
-      .map(async (person) => {
-        const imageLoader = person.img ? images[`/src/img/people/${person.img}`] : null;
-        const imageData = imageLoader ? (await imageLoader()).default : null;
-
-        return (
-          <div class="flex items-center">
-            {imageData ? (
-              <Image
-                class="mr-4 h-12 w-12 rounded-lg"
-                height={48}
-                width={48}
-                src={imageData}
-                alt={person.name}
-              />
-            ) : (
-              <>
-                <Image
-                  class="mr-4 h-12 w-12 rounded-lg dark:hidden"
-                  height={48}
-                  width={48}
-                  src={(await images['/src/img/people/avatar-light.png']()).default}
-                  alt={person.name}
-                />
-                <Image
-                  class="mr-4 hidden h-12 w-12 rounded-lg dark:block"
-                  height={48}
-                  width={48}
-                  src={(await images['/src/img/people/avatar-dark.png']()).default}
-                  alt={person.name}
-                />
-              </>
-            )}
-            {person.name}
-          </div>
-        );
-      })
-  }
+  {peopleWithImages.map((person) => (
+    <div class="flex items-center">
+      {person.imageData ? (
+        <Image
+          class="mr-4 h-12 w-12 rounded-lg"
+          height={48}
+          width={48}
+          src={person.imageData}
+          alt={person.name}
+        />
+      ) : (
+        <>
+          <Image
+            class="mr-4 h-12 w-12 rounded-lg dark:hidden"
+            height={48}
+            width={48}
+            src={defaultAvatarLight}
+            alt={person.name}
+          />
+          <Image
+            class="mr-4 hidden h-12 w-12 rounded-lg dark:block"
+            height={48}
+            width={48}
+            src={defaultAvatarDark}
+            alt={person.name}
+          />
+        </>
+      )}
+      {person.name}
+    </div>
+  ))}
 </div>
 
