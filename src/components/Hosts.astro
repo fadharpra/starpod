@@ -32,7 +32,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
         <Image
           class="mr-4 h-12 w-12 rounded-lg"
           height={48}
-          src={images[`/src/img/people/${host.img}`]?.().default}
+          src={(await images[`/src/img/people/${host.img}`]()).default}
           width={48}
           alt={host.name}
         />
