@@ -4,7 +4,7 @@ import { array, number, object, optional, parse, string } from 'valibot';
 
 import { dasherize } from '../utils/dasherize';
 import { truncate } from '../utils/truncate';
-import starpodConfig from '../../starpod.config';
+import { starpodConfig } from '../../config/starpod';
 
 export interface Show {
   title: string;

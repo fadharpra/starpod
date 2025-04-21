@@ -2,7 +2,7 @@
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 
-import starpodConfig from '../../starpod.config';
+import { starpodConfig } from '../../config/starpod';
 
 type Host = {
   name: string;
@@ -14,7 +14,8 @@ type Host = {
   website?: string;
 };
 
-const { hosts } = starpodConfig ?? { hosts: [] };
+const hosts: Host[] = starpodConfig.hosts;
+
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
 );
@@ -26,14 +27,14 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
   <h3 class="section-heading pb-6">Hosted By</h3>
 
   {
-    hosts.map((host) => (
+    hosts.map((host: Host) => (
       <div class="mb-4 flex items-center">
         <Image
           class="mr-4 h-12 w-12 rounded-lg"
           height={48}
-          src={images[`/src/img/people/${host.img}`]()}
+          src={images[`/src/img/people/${host.img}`]?.().default}
           width={48}
-          alt=""
+          alt={host.name}
         />
         {host.name}
       </div>
