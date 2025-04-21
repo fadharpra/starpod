@@ -19,6 +19,18 @@ const hosts: Host[] = starpodConfig.hosts;
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/img/people/*.{jpeg,jpg,png}'
 );
+
+// Resolve image metadata safely, with fallback if image is missing
+const resolvedHosts = await Promise.all(
+  hosts.map(async (host) => {
+    const path = `/src/img/people/${host.img}`;
+    const mod = await images[path]?.();
+    return {
+      ...host,
+      resolvedImg: mod?.default?.src ?? null,
+    };
+  })
+);
 ---
 
 <div
@@ -27,17 +39,24 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
   <h3 class="section-heading pb-6">Hosted By</h3>
 
   {
-    hosts.map((host: Host) => (
+    resolvedHosts.map((host) => (
       <div class="mb-4 flex items-center">
-        <Image
-          class="mr-4 h-12 w-12 rounded-lg"
-          height={48}
-          src={(await images[`/src/img/people/${host.img}`]()).default}
-          width={48}
-          alt={host.name}
-        />
+        {host.resolvedImg ? (
+          <Image
+            class="mr-4 h-12 w-12 rounded-lg"
+            height={48}
+            width={48}
+            src={host.resolvedImg}
+            alt={host.name}
+          />
+        ) : (
+          <div class="mr-4 h-12 w-12 rounded-lg bg-gray-300 flex items-center justify-center text-sm text-white dark:bg-gray-600">
+            ?
+          </div>
+        )}
         {host.name}
       </div>
     ))
   }
 </div>
+
