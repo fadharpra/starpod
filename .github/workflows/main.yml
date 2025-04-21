@@ -51,10 +51,10 @@ jobs:
         run: pnpm run build
       
       - name: Clear bucket before upload
-        run: gsutil -m rm -r gs://${{ env.BUCKET_NAME }}/client/**
+        run: gsutil -m rm -r gs://${{ env.BUCKET_NAME }}/** || true
 
       - name: Upload to GCS
-        run: gsutil -m rsync -r -d -c dist/ gs://${{ env.BUCKET_NAME }}
+        run: gsutil -m rsync -r -d -c dist/ gs://${{ env.BUCKET_NAME }}/
 
       - name: Fix JS MIME types
         run: |
