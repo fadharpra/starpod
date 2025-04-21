@@ -54,7 +54,7 @@ jobs:
         run: gsutil -m rm -r gs://${{ env.BUCKET_NAME }}/client/**
 
       - name: Upload to GCS
-        run: gsutil -m rsync -r -d -c dist/client/ gs://${{ env.BUCKET_NAME }}/client/
+        run: gsutil -m rsync -r -d -c dist/ gs://${{ env.BUCKET_NAME }}
 
       - name: Fix JS MIME types
         run: |
