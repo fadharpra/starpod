@@ -28,9 +28,19 @@ export interface Episode {
   };
 }
 
-export async function getShowInfo() {
-  // @ts-expect-error
-  return (await parseFeed.parse(starpodConfig.rssFeed)) as Show;
+export async function getShowInfo(): Promise<Show> {
+  try {
+    // @ts-expect-error
+    return (await parseFeed.parse(starpodConfig.rssFeed)) as Show;
+  } catch (err) {
+    console.warn('⚠️ Failed to fetch or parse RSS feed in getShowInfo, using dummy show.');
+    return {
+      title: 'DevInfra Cast',
+      description: 'A tech podcast for cloud-native engineers and DevOps enthusiasts.',
+      image: '/favicon.svg',
+      link: 'https://yourdomain.com'
+    };
+  }
 }
 
 export async function getAllEpisodes(): Promise<Episode[]> {
@@ -97,7 +107,6 @@ export async function getAllEpisodes(): Promise<Episode[]> {
   } catch (err) {
     console.error('⚠️ Failed to fetch or parse RSS feed, fallback to dummy episodes.', err);
 
-    // Fallback dummy
     return [
       {
         id: 'dummy-ep-1',
@@ -128,4 +137,3 @@ export async function getAllEpisodes(): Promise<Episode[]> {
     ];
   }
 }
-
