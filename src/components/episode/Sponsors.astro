@@ -12,31 +12,38 @@ export interface Props {
 }
 
 const { sponsors } = Astro.props;
+
 const svgs = import.meta.glob('/src/img/sponsors/*.svg', {
   query: '?raw',
   import: 'default'
 });
+
+const sponsorsWithSvg = await Promise.all(
+  sponsors.map(async (sponsor) => {
+    const key = sponsor.img ? `/src/img/sponsors/${sponsor.img}` : null;
+    const svgContent = key && svgs[key] ? await svgs[key]() : '';
+    return {
+      ...sponsor,
+      svgContent
+    };
+  })
+);
 ---
 
 <h3 class="section-heading pb-6">Sponsors</h3>
 
 <div class="mb-12 grid grid-cols-1 gap-4 lg:mb-20 lg:grid-cols-2">
   {
-    sponsors.map((sponsor) => {
-      return (
-        <a href={sponsor.url} target="_blank">
-          <div class="flex items-center">
-            <div class="mr-4 h-12 w-12 rounded-lg">
-              <Fragment
-                height="48"
-                width="48"
-                set:html={svgs[`/src/img/sponsors/${sponsor.img}`]()}
-              />
-            </div>
-            {sponsor.name}
+    sponsorsWithSvg.map((sponsor) => (
+      <a href={sponsor.url} target="_blank">
+        <div class="flex items-center">
+          <div class="mr-4 h-12 w-12 rounded-lg">
+            <div set:html={sponsor.svgContent} />
           </div>
-        </a>
-      );
-    })
+          {sponsor.name}
+        </div>
+      </a>
+    ))
   }
 </div>
+
