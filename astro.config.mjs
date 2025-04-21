@@ -1,5 +1,4 @@
 import { defineConfig } from 'astro/config';
-import db from '@astrojs/db';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
@@ -14,7 +13,7 @@ export default defineConfig({
       enabled: true,
     },
   }),
-  integrations: [db(), preact(), sitemap()],
+  integrations: [preact(), sitemap()],
   redirects: {
     '/hot-takes-tan-stack-and-open-source-with-tanner-linsley':
       '/hot-takes-tanstack-and-open-source-with-tanner-linsley',
