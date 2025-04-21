@@ -7,7 +7,7 @@ export const starpodConfig: StarpodConfig = {
   hosts: [
     {
       name: 'Fadhli Ari',
-      img: 'portrait.jpg'
+      img: 'portrait.jpg',
       title: 'Infra Engineer',
       bio: 'Infra and Linux stuff.',
       github: 'https://github.com/fadharpra',
