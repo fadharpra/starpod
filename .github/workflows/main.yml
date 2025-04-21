@@ -49,7 +49,10 @@ jobs:
 
       - name: Build Astro
         run: pnpm run build
+          
+      - name: Clear bucket before upload
+        run: gsutil -m rm -r gs://${{ env.BUCKET_NAME }}/client/**
 
       - name: Upload to GCS
-        run: gsutil -m cp -r dist/* gs://${{ env.BUCKET_NAME }}/
+        run: gsutil -m rsync -r -d -c dist/ gs://${{ env.BUCKET_NAME }}/client/
 
