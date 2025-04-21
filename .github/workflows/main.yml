@@ -49,10 +49,14 @@ jobs:
 
       - name: Build Astro
         run: pnpm run build
-          
+      
       - name: Clear bucket before upload
         run: gsutil -m rm -r gs://${{ env.BUCKET_NAME }}/client/**
 
       - name: Upload to GCS
-        run: gsutil -m rsync -r -d -c dist/ gs://${{ env.BUCKET_NAME }}/client/
+        run: gsutil -m rsync -r -d -c dist/client/ gs://${{ env.BUCKET_NAME }}/client/
 
+      - name: Fix JS MIME types
+        run: |
+          gsutil -m setmeta -h "Content-Type:application/javascript" \
+            $(gsutil ls gs://${{ env.BUCKET_NAME }}/client/_astro/*.js || true)
